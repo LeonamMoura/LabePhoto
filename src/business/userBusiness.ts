@@ -1,10 +1,11 @@
-import { userDatabase } from "../data/userDatabase";
+import { UserDatabase } from "../data/userDatabase";
+import { Authenticator } from "../services/Authenticator";
 import { HashManager } from "../services/HashManager";
 import { IdGenerator } from "../services/IdGenerator";
 
 
 
-export class userBusiness {
+export class UserBusiness {
 
   async signUp(name: string, email: string, nickname: string, password: string) {
 
@@ -32,10 +33,33 @@ export class userBusiness {
     const hashManager = new HashManager();
     const hashedPassword = await hashManager.hash(password);
 
-    const newUser = new userDatabase();
-    const result = await newUser.signUp(id, name, email, nickname, hashedPassword);
+    const userDatabase = new UserDatabase();
+    const result = await userDatabase.signUp(id, name, email, nickname, hashedPassword);
 
     return result;
 
+  }
+
+
+  async login(email: string, password: string): Promise<string> {
+
+    if (!email || !password) {
+      throw new Error("Preencha todos os campos!");
+    };
+
+    const userDatabase = new UserDatabase();
+    const user = await userDatabase.getUserByEmail(email);
+
+    const hashManager = new HashManager();
+    const isPasswordCorrect = await hashManager.compare(password, user.password);
+
+    if (!isPasswordCorrect) {
+      throw new Error("Senha incorreta!");
+    };
+
+    const authenticator = new Authenticator();
+    const token = authenticator.generateToken({ id: user.id });
+
+    return token;
   }
 }
