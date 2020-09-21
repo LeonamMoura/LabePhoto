@@ -2,23 +2,25 @@ import { Request, Response } from "express";
 import { baseDatabase } from "../../data/baseDatabase";
 import { UserBusiness } from "../../business/userBusiness";
 
-export const registerUser = async (req: Request, res: Response) => {
+
+export const loginUser = async (req: Request, res: Response) => {
+
   try {
 
-    const { name, email, nickname, password } = req.body;
+    const { email, password } = req.body;
 
     const userBusiness = new UserBusiness();
-    await userBusiness.signUp(name, email, nickname, password)
+    const result = await userBusiness.login(email, password)
+
 
     res.status(200).send({
-      message: 'Usuário cadastrado! Faça login para obter o token'
+      token: result
     });
 
-
-  } catch (e) {
+  } catch (error) {
     res.status(400).send({
-      message: e.message
-    });
-  };
+      message: error.message
+    })
+  }
   await baseDatabase.destroyConnection();
-};
+}
